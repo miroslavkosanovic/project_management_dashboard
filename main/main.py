@@ -7,10 +7,12 @@ app = FastAPI()
 # In-memory storage for projects
 projects = {}
 
+
 # Pydantic model for project
 class Project(BaseModel):
     name: str
     description: Optional[str] = None
+
 
 @app.post("/projects")
 def create_project(project: Project):
@@ -18,13 +20,16 @@ def create_project(project: Project):
     projects[project_id] = project
     return {"project_id": project_id, "project": project}
 
+
 @app.get("/projects")
 def get_all_projects():
     return projects
 
+
 @app.get("/project/{project_id}/info")
 def get_project_info(project_id: str):
     return projects.get(project_id)
+
 
 @app.put("/project/{project_id}/info")
 def update_project_info(project_id: str, project: Project):
@@ -33,6 +38,7 @@ def update_project_info(project_id: str, project: Project):
         return {"project_id": project_id, "project": project}
     else:
         return {"error": "Project not found"}
+
 
 @app.delete("/project/{project_id}")
 def delete_project(project_id: str):
