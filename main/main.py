@@ -32,7 +32,7 @@ def get_all_projects():
 def get_project_info(project_id: str):
     project = projects.get(project_id)
     if project is not None:
-        return {"project_id": project_id, "name": project["name"]}
+        return {"project_id": project_id, "name": project.name}
     else:
         return {"error": "Project not found"}, 404
 
