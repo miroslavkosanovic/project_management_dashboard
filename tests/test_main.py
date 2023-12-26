@@ -29,13 +29,7 @@ def test_get_all_projects():
 def test_get_project_info():
     response = client.get("/project/1/info")
     assert response.status_code == 200
-    assert response.json() == {
-        "project_id": "1",
-        "name": "Test Project",
-        "details": None,
-        "documents": [],
-        "logo": None,
-    }
+    assert response.json() == {"project_id": "1", "name": "Test Project"}
 
 
 def test_update_project_info():

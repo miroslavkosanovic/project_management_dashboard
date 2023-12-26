@@ -40,7 +40,7 @@ def get_project_info(project_id: str):
 @app.put("/project/{project_id}/info")
 def update_project_info(project_id: str, project: Project):
     if project_id in projects:
-        projects[project_id] = project.dict()
+        projects[project_id] = project.model_dump()
         return {"project_id": project_id, "name": projects[project_id]["name"]}
     else:
         return {"error": "Project not found"}, 404
