@@ -1,55 +1,136 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException
+from sqlalchemy import create_engine, Column, Integer, String, Text  # noqa: F401
+from sqlalchemy.orm import sessionmaker  # noqa: F401
+from sqlalchemy.ext.declarative import declarative_base  # noqa: F401
+from dotenv import load_dotenv  # noqa: F401
+from pydantic import BaseModel, HttpUrl
 from typing import Optional, List
+import os  # noqa: F401
 
-app = FastAPI()
 
-# In-memory storage for projects
-projects = {}
+# Load environment variables
+load_dotenv()
+
+# Get database connection details from environment variables
+db_user = os.getenv('DB_USER')
+db_password = os.getenv('DB_PASSWORD')
+db_name = os.getenv('DB_NAME')
+db_host = os.getenv('DB_HOST')
+db_port = os.getenv('DB_PORT')
+
+# Create a database engine
+engine = create_engine(
+    f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}')
+
+# Create a base class for declarative models
+Base = declarative_base()
+
+
+# Define a Project model
+class Project(Base):
+    __tablename__ = 'projects'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    logo = Column(String)
+    details = Column(Text)
+    documents = Column(Text)
+
+
+# Create a Session class bound to this engine
+Session = sessionmaker(bind=engine)
 
 
 # Pydantic model for project
-class Project(BaseModel):
+class ProjectModel(BaseModel):
     name: str
-    logo: Optional[str] = None  # URL of the logo
+    logo: Optional[HttpUrl] = None  # URL of the logo
     details: Optional[str] = None  # Additional details about the project
-    documents: Optional[List[str]] = []  # List of URLs of attached documents
+    documents: Optional[List[HttpUrl]] = []  # List of URLs of attached documents
+
+
+app = FastAPI()
 
 
 @app.post("/projects")
-def create_project(project: Project):
-    project_id = str(len(projects) + 1)
-    projects[project_id] = project
-    return {"project_id": project_id, "project": project}
+def create_project(project: ProjectModel):
+    db_project = Project(**project.dict())
+    session = Session()
+    session.add(db_project)
+    session.commit()
+    session.refresh(db_project)
+    session.close()
+    return {"project_id": db_project.id, "project": project}
 
 
 @app.get("/projects")
 def get_all_projects():
+    session = Session()
+    projects = session.query(Project).all()
+    session.close()
     return projects
 
 
-@app.get("/project/{project_id}/info")
-def get_project_info(project_id: str):
-    project = projects.get(project_id)
+@app.get("/project/{project_id}")
+def get_project(project_id: int):
+    session = Session()
+    project = session.query(Project).get(project_id)
+    session.close()
     if project is not None:
-        return {"project_id": project_id, "name": project.name}
+        return project
     else:
-        return {"error": "Project not found"}, 404
+        raise HTTPException(status_code=404, detail="Project not found")
+
+
+@app.get("/project/{project_id}/info")
+def get_project_info(project_id: int):
+    session = Session()
+    project = session.query(Project).get(project_id)
+    session.close()
+    if project is not None:
+        return {
+            "project_id": project.id,
+            "name": project.name,
+            "logo": project.logo,
+            "details": project.details,
+            "documents": project.documents
+        }
+    else:
+        raise HTTPException(status_code=404, detail="Project not found")
 
 
 @app.put("/project/{project_id}/info")
-def update_project_info(project_id: str, project: Project):
-    if project_id in projects:
-        projects[project_id] = project.model_dump()
-        return {"project_id": project_id, "name": projects[project_id]["name"]}
+def update_project_info(project_id: int, project: ProjectModel):
+    session = Session()
+    db_project = session.query(Project).get(project_id)
+    if db_project is not None:
+        db_project.name = project.name
+        db_project.logo = project.logo
+        db_project.details = project.details
+        db_project.documents = project.documents
+        session.commit()
+        session.refresh(db_project)
+        session.close()
+        return {
+            "project_id": db_project.id,
+            "name": db_project.name,
+            "logo": db_project.logo,
+            "details": db_project.details,
+            "documents": db_project.documents
+        }
     else:
-        return {"error": "Project not found"}, 404
+        session.close()
+        raise HTTPException(status_code=404, detail="Project not found")
 
 
 @app.delete("/project/{project_id}")
-def delete_project(project_id: str):
-    if project_id in projects:
-        del projects[project_id]
+def delete_project(project_id: int):
+    session = Session()
+    project = session.query(Project).get(project_id)
+    if project is not None:
+        session.delete(project)
+        session.commit()
+        session.close()
         return {"message": "Project deleted"}
     else:
-        return {"error": "Project not found"}
+        raise HTTPException(status_code=404, detail="Project not found")
