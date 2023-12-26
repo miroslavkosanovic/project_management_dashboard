@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 
 app = FastAPI()
 
@@ -11,7 +11,9 @@ projects = {}
 # Pydantic model for project
 class Project(BaseModel):
     name: str
-    description: Optional[str] = None
+    logo: Optional[str] = None  # URL of the logo
+    details: Optional[str] = None  # Additional details about the project
+    documents: Optional[List[str]] = []  # List of URLs of attached documents
 
 
 @app.post("/projects")
@@ -28,16 +30,20 @@ def get_all_projects():
 
 @app.get("/project/{project_id}/info")
 def get_project_info(project_id: str):
-    return projects.get(project_id)
+    project = projects.get(project_id)
+    if project is not None:
+        return {"project_id": project_id, "name": project["name"]}
+    else:
+        return {"error": "Project not found"}, 404
 
 
 @app.put("/project/{project_id}/info")
 def update_project_info(project_id: str, project: Project):
     if project_id in projects:
-        projects[project_id] = project
-        return {"project_id": project_id, "project": project}
+        projects[project_id] = project.dict()
+        return {"project_id": project_id, "name": projects[project_id]["name"]}
     else:
-        return {"error": "Project not found"}
+        return {"error": "Project not found"}, 404
 
 
 @app.delete("/project/{project_id}")
