@@ -1,8 +1,7 @@
 from fastapi.testclient import TestClient
-from main import app, Project
+from main import app
 
 client = TestClient(app)
-
 
 def test_create_project():
     response = client.post(
@@ -12,7 +11,10 @@ def test_create_project():
     assert response.status_code == 200
     assert response.json() == {
         "project_id": "1",
-        "project": {"name": "Test Project", "description": "This is a test project"},
+        "project": {
+            "name": "Test Project",
+            "description": "This is a test project"
+        },
     }
 
 
