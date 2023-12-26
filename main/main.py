@@ -12,15 +12,16 @@ import os  # noqa: F401
 load_dotenv()
 
 # Get database connection details from environment variables
-db_user = os.getenv('DB_USER')
-db_password = os.getenv('DB_PASSWORD')
-db_name = os.getenv('DB_NAME')
-db_host = os.getenv('DB_HOST')
-db_port = os.getenv('DB_PORT')
+db_user = os.getenv("DB_USER")
+db_password = os.getenv("DB_PASSWORD")
+db_name = os.getenv("DB_NAME")
+db_host = os.getenv("DB_HOST")
+db_port = os.getenv("DB_PORT")
 
 # Create a database engine
 engine = create_engine(
-    f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}')
+    f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+)
 
 # Create a base class for declarative models
 Base = declarative_base()
@@ -28,7 +29,7 @@ Base = declarative_base()
 
 # Define a Project model
 class Project(Base):
-    __tablename__ = 'projects'
+    __tablename__ = "projects"
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -93,7 +94,7 @@ def get_project_info(project_id: int):
             "name": project.name,
             "logo": project.logo,
             "details": project.details,
-            "documents": project.documents
+            "documents": project.documents,
         }
     else:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -116,7 +117,7 @@ def update_project_info(project_id: int, project: ProjectModel):
             "name": db_project.name,
             "logo": db_project.logo,
             "details": db_project.details,
-            "documents": db_project.documents
+            "documents": db_project.documents,
         }
     else:
         session.close()
