@@ -8,7 +8,7 @@ def test_create_project():
     response = client.post("/projects", json={"name": "Test Project"})
     assert response.status_code == 200
     assert response.json() == {
-        "project_id": "1",
+        "project_id": 1,
         "project": {
             "name": "Test Project",
             "details": None,
@@ -21,21 +21,39 @@ def test_create_project():
 def test_get_all_projects():
     response = client.get("/projects")
     assert response.status_code == 200
-    assert response.json() == {
-        "1": {"name": "Test Project", "details": None, "documents": [], "logo": None}
-    }
+    assert response.json() == [
+        {
+            "id": 1,
+            "name": "Test Project",
+            "details": None,
+            "documents": [],
+            "logo": None,
+        }
+    ]
 
 
 def test_get_project_info():
     response = client.get("/project/1/info")
     assert response.status_code == 200
-    assert response.json() == {"project_id": "1", "name": "Test Project"}
+    assert response.json() == {
+        "project_id": 1,
+        "name": "Test Project",
+        "details": None,
+        "documents": [],
+        "logo": None,
+    }
 
 
 def test_update_project_info():
     response = client.put("/project/1/info", json={"name": "Updated Project"})
     assert response.status_code == 200
-    assert response.json() == {"project_id": "1", "name": "Updated Project"}
+    assert response.json() == {
+        "project_id": 1,
+        "name": "Updated Project",
+        "details": None,
+        "documents": [],
+        "logo": None,
+    }
 
 
 def test_delete_project():
