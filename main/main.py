@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from sqlalchemy import create_engine, Column, Integer, String, Text  # noqa: F401
 from sqlalchemy.orm import sessionmaker, declarative_base  # noqa: F401
 from sqlalchemy.exc import OperationalError
+from sqlalchemy.orm import text
 from dotenv import load_dotenv  # noqa: F401
 from pydantic import BaseModel, HttpUrl
 from typing import Optional, List
@@ -46,7 +47,7 @@ def test_db_connection():
     try:
         # Try to establish a connection and execute a query
         session = Session()
-        session.execute(Text("SELECT 1"))
+        session.execute(text("SELECT 1"))
         print("Connection to the database was successful.")
     except OperationalError:
         print("Failed to connect to the database.")
