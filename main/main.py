@@ -77,7 +77,7 @@ def get_all_projects():
 @app.get("/project/{project_id}")
 def get_project(project_id: int):
     session = Session()
-    project = session.query(Project).get(project_id)
+    project = session.get(Project, project_id)
     session.close()
     if project is not None:
         return project
@@ -88,7 +88,7 @@ def get_project(project_id: int):
 @app.get("/project/{project_id}/info")
 def get_project_info(project_id: int):
     session = Session()
-    project = session.query(Project).get(project_id)
+    project = session.get(Project, project_id)
     session.close()
     if project is not None:
         return {
@@ -105,7 +105,7 @@ def get_project_info(project_id: int):
 @app.put("/project/{project_id}/info")
 def update_project_info(project_id: int, project: ProjectModel):
     session = Session()
-    db_project = session.query(Project).get(project_id)
+    db_project = session.get(Project, project_id)
     if db_project is not None:
         db_project.name = project.name
         db_project.logo = project.logo
@@ -129,7 +129,7 @@ def update_project_info(project_id: int, project: ProjectModel):
 @app.delete("/project/{project_id}")
 def delete_project(project_id: int):
     session = Session()
-    project = session.query(Project).get(project_id)
+    project = session.get(Project, project_id)
     if project is not None:
         session.delete(project)
         session.commit()
