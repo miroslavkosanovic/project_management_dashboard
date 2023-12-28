@@ -1,7 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from sqlalchemy import create_engine, Column, Integer, String, Text  # noqa: F401
-from sqlalchemy.orm import sessionmaker  # noqa: F401
-from sqlalchemy.ext.declarative import declarative_base  # noqa: F401
+from sqlalchemy.orm import sessionmaker, declarative_base  # noqa: F401
 from dotenv import load_dotenv  # noqa: F401
 from pydantic import BaseModel, HttpUrl
 from typing import Optional, List
@@ -55,7 +54,7 @@ app = FastAPI()
 
 @app.post("/projects")
 def create_project(project: ProjectModel):
-    db_project = Project(**project.dict())
+    db_project = Project(**project.model_dump())
     session = Session()
     session.add(db_project)
     session.commit()
