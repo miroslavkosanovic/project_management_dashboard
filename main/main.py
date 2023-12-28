@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from sqlalchemy import create_engine, Column, Integer, String, Text  # noqa: F401
 from sqlalchemy.orm import sessionmaker, declarative_base  # noqa: F401
 from sqlalchemy.exc import OperationalError
-from sqlalchemy.orm import text
+from sqlalchemy import text
 from dotenv import load_dotenv  # noqa: F401
 from pydantic import BaseModel, HttpUrl
 from typing import Optional, List
