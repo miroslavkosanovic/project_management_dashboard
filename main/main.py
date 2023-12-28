@@ -1,10 +1,11 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy import create_engine, Column, Integer, String, Text  # noqa: F401
 from sqlalchemy.orm import sessionmaker, declarative_base  # noqa: F401
 from dotenv import load_dotenv  # noqa: F401
 from pydantic import BaseModel, HttpUrl
 from typing import Optional, List
 import os  # noqa: F401
+from werkzeug.security import generate_password_hash
 
 
 # Load environment variables
@@ -26,6 +27,23 @@ engine = create_engine(
 Base = declarative_base()
 
 
+class UserCreate(BaseModel):
+    name: str
+    email: str
+    password: str
+    role: Optional[str] = "user"
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    email = Column(String, unique=True)
+    password = Column(String)
+    role = Column(String)
+
+
 # Define a Project model
 class Project(Base):
     __tablename__ = "projects"
@@ -43,6 +61,8 @@ Base.metadata.create_all(engine)
 # Create a Session class bound to this engine
 Session = sessionmaker(bind=engine)
 
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 # Pydantic model for project
 class ProjectModel(BaseModel):
@@ -52,7 +72,29 @@ class ProjectModel(BaseModel):
     documents: Optional[List[HttpUrl]] = []  # List of URLs of attached documents
 
 
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
 app = FastAPI()
+
+
+@app.post("/auth", response_model=UserCreate)
+def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    hashed_password = generate_password_hash(user.password, method="sha256")
+
+    db_user = User(
+        name=user.name, email=user.email, password=hashed_password, role=user.role
+    )
+
+    db.add(db_user)
+    db.commit()
+
+    return db_user
 
 
 @app.post("/projects")

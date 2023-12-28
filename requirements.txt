@@ -8,3 +8,5 @@ flake8==6.1.0
 pytest==7.4.3
 httpx==0.26.0
 python-dotenv
+PyJWT=2.8
+werkzeug=3.0.1
