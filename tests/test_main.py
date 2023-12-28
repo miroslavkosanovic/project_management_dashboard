@@ -12,7 +12,7 @@ def test_create_project():
         "project": {
             "name": "Test Project",
             "details": None,
-            "documents": "{}",
+            "documents": [],
             "logo": None,
         },
     }
