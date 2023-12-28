@@ -46,7 +46,7 @@ def test_db_connection():
     try:
         # Try to establish a connection and execute a query
         session = Session()
-        session.execute("SELECT 1")
+        session.execute(Text("SELECT 1"))
         print("Connection to the database was successful.")
     except OperationalError:
         print("Failed to connect to the database.")
