@@ -8,7 +8,9 @@ from typing import Optional, List
 import os  # noqa: F401
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
+from jwt import PyJWTError, JWTError
 from datetime import datetime, timedelta
+from fastapi import HTTPException, status
 
 # Load environment variables
 load_dotenv()
@@ -87,6 +89,8 @@ Session = sessionmaker(bind=engine)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
+
 
 # Pydantic model for project
 class ProjectModel(BaseModel):
@@ -137,6 +141,50 @@ def login(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
+credentials_exception = HTTPException(
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail="Could not validate credentials",
+    headers={"WWW-Authenticate": "Bearer"},
+)
+
+
+class TokenData(BaseModel):
+    email: str
+
+
+def decode_access_token(token: str):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+        return payload
+    except (PyJWTError, JWTError):
+        raise credentials_exception
+
+
+def get_current_user(
+    db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
+):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = decode_access_token(token)
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+        token_data = TokenData(email=email)
+    except PyJWTError:
+        raise credentials_exception
+    user = db.query(User).filter(User.email == token_data.email).first()
+    if user is None:
+        raise credentials_exception
+    return user
+
+
 @app.post("/projects")
 def create_project(project: ProjectModel):
     db_project = Project(**project.model_dump())
@@ -148,7 +196,7 @@ def create_project(project: ProjectModel):
     return {"project_id": db_project.id, "project": project}
 
 
-@app.get("/projects")
+@app.get("/projects", dependencies=[Depends(get_current_user)])
 def get_all_projects():
     session = Session()
     projects = session.query(Project).all()
@@ -156,7 +204,7 @@ def get_all_projects():
     return projects
 
 
-@app.get("/project/{project_id}")
+@app.get("/project/{project_id}", dependencies=[Depends(get_current_user)])
 def get_project(project_id: int):
     session = Session()
     project = session.get(Project, project_id)
