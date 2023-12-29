@@ -10,6 +10,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 from jwt import PyJWTError, InvalidTokenError
 from datetime import datetime, timedelta
+from sqlalchemy import ForeignKey
 
 # Load environment variables
 load_dotenv()
@@ -71,14 +72,14 @@ class User(Base):
 
 # Define a Project model
 class Project(Base):
-    __tablename__ = 'projects'
+    __tablename__ = "projects"
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
     details = Column(String)
     documents = Column(String)
     logo = Column(String)
-    owner_id = Column(Integer, ForeignKey('users.id'))
+    owner_id = Column(Integer, ForeignKey("users.id"))
 
 
 # Create all tables in the engine
