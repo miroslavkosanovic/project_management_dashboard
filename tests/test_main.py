@@ -31,7 +31,7 @@ engine = create_engine(
 Session = sessionmaker(bind=engine)
 
 # Create a Session object
-db = Session()
+db = Session
 
 
 def test_create_project():
