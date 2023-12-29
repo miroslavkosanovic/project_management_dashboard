@@ -39,6 +39,7 @@ def test_get_all_projects():
     # Delete the existing user
     db.query(User).filter(User.email == "test@test.com").delete()
     db.commit()
+
     # Create the User object
     test_user = User(
         name="Test User",
@@ -50,10 +51,15 @@ def test_get_all_projects():
     # Add the test user to the database
     db.add(test_user)
     db.commit()
+
     # Authenticate
     login_response = client.post(
         "/login", json={"email": "test@test.com", "password": "test"}
     )
+
+    # Print out the response content
+    print(login_response.content)
+
     assert login_response.status_code == 200
     token = login_response.json()["access_token"]
 
