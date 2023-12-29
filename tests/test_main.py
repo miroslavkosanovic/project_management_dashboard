@@ -33,7 +33,7 @@ def test_create_user():
 
 
 def test_get_all_projects():
-    # Create a new database session for the test
+    # Create a new database session for the test1
     db = next(get_db())
 
     # Delete the existing user
