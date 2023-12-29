@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy import create_engine, Column, Integer, String, Text  # noqa: F401
 from sqlalchemy.orm import sessionmaker, declarative_base  # noqa: F401
@@ -27,6 +27,7 @@ engine = create_engine(
     f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
 )
 
+
 def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode = data.copy()
     if expires_delta:
@@ -37,8 +38,10 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
+
 # Create a base class for declarative models
 Base = declarative_base()
+
 
 class UserLogin(BaseModel):
     email: str
@@ -46,6 +49,7 @@ class UserLogin(BaseModel):
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
 
 class UserCreate(BaseModel):
     name: str
@@ -116,8 +120,11 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
     return db_user
 
+
 @app.post("/login")
-def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+def login(
+    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
+):
     user = db.query(User).filter(User.email == form_data.username).first()
 
     if not user or not check_password_hash(user.password, form_data.password):
@@ -128,6 +135,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         data={"sub": user.email}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
 
 @app.post("/projects")
 def create_project(project: ProjectModel):
