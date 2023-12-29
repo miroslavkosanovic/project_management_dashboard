@@ -54,7 +54,7 @@ def test_get_all_projects():
 
     # Authenticate
     login_response = client.post(
-        "/login", json={"email": "test@test.com", "password": "test"}
+        "/login", data={"username": "test@test.com", "password": "test"}
     )
 
     # Print out the response content
@@ -76,7 +76,6 @@ def test_get_all_projects():
             "logo": None,
         }
     ]
-
 
 def test_get_project_info():
     response = client.get("/project/1/info")
