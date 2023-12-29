@@ -10,3 +10,4 @@ httpx==0.26.0
 python-dotenv
 PyJWT==2.8
 werkzeug==3.0.1
+python-multipart
