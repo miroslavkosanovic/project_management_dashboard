@@ -25,7 +25,7 @@ db = Session()
 
 
 def test_create_project():
-    response = client.post("/projects", json={"name": "Test Project"})
+    response = client.post("/projects", json={"id": 1000, "name": "Test Project"})
     assert response.status_code == 200
     assert response.json() == {
         "project_id": 1,
