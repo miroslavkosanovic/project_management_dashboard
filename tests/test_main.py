@@ -17,9 +17,19 @@ def test_create_project():
         },
     }
 
+def test_create_user():
+    response = client.post("/auth", json={"name": "test", "email": "test@test.com", "password": "test", "role": "test"})
+    assert response.status_code == 200
 
 def test_get_all_projects():
-    response = client.get("/projects")
+    # Authenticate
+    login_response = client.post("/login", json={"email": "test@test.com", "password": "test"})
+    assert login_response.status_code == 200
+    token = login_response.json()["access_token"]
+
+    # Make the request to the /projects endpoint
+    response = client.get("/projects", headers={"Authorization": f"Bearer {token}"})
+
     assert response.status_code == 200
     assert response.json() == [
         {
