@@ -77,6 +77,7 @@ def test_get_all_projects():
         }
     ]
 
+
 def test_get_project_info():
     response = client.get("/project/1/info")
     assert response.status_code == 200
