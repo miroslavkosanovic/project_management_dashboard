@@ -132,8 +132,8 @@ def test_update_project_info():
 
 
 def setup_test_data(db):
-    # Delete any existing data
-    db.query(User).delete()
+    with db() as session:
+        session.query(User).delete()
     db.query(Project).delete()
     db.commit()
 
