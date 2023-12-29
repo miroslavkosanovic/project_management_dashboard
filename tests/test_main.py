@@ -36,6 +36,9 @@ def test_get_all_projects():
     # Create a new database session for the test
     db = next(get_db())
 
+    # Delete the existing user
+    db.query(User).filter(User.email == "test@test.com").delete()
+    db.commit()
     # Create the User object
     test_user = User(
         name="Test User",
