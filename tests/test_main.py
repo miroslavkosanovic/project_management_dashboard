@@ -6,15 +6,16 @@ from sqlalchemy.orm import sessionmaker
 import os
 import pytest
 from sqlalchemy import text
-from sqlalchemy.orm import Session
 
 client = TestClient(app)
 
+
 @pytest.fixture(autouse=True)
 def clear_database():
-    with Session(engine) as session:
+    with db() as session:
         session.execute(text("TRUNCATE TABLE projects RESTART IDENTITY CASCADE"))
         session.commit()
+
 
 db_user = os.getenv("DB_USER")
 db_password = os.getenv("DB_PASSWORD")
