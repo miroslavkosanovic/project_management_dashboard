@@ -134,40 +134,40 @@ def test_update_project_info():
 def setup_test_data(db):
     with db() as session:
         session.query(User).delete()
-    db.query(Project).delete()
-    db.commit()
+        db.query(Project).delete()
+        db.commit()
 
-    # Create the owner
-    owner = User(
-        name="Owner",
-        email="owner@test.com",
-        password=generate_password_hash("test"),
-        role="owner",
-    )
-    db.add(owner)
+        # Create the owner
+        owner = User(
+            name="Owner",
+            email="owner@test.com",
+            password=generate_password_hash("test"),
+            role="owner",
+        )
+        db.add(owner)
 
-    # Create the participant
-    participant = User(
-        name="Participant",
-        email="participant@test.com",
-        password=generate_password_hash("test"),
-        role="participant",
-    )
-    db.add(participant)
+        # Create the participant
+        participant = User(
+            name="Participant",
+            email="participant@test.com",
+            password=generate_password_hash("test"),
+            role="participant",
+        )
+        db.add(participant)
 
-    # Create the project and assign it to the owner
-    project = Project(
-        id=1,
-        name="Test Project",
-        details=None,
-        documents="{}",
-        logo=None,
-        owner_id=owner.id,
-    )
-    db.add(project)
+        # Create the project and assign it to the owner
+        project = Project(
+            id=1,
+            name="Test Project",
+            details=None,
+            documents="{}",
+            logo=None,
+            owner_id=owner.id,
+        )
+        db.add(project)
 
-    # Commit the changes to the database
-    db.commit()
+        # Commit the changes to the database
+        db.commit()
 
 
 # Call the setup function before your tests
