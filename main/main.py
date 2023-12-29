@@ -71,13 +71,14 @@ class User(Base):
 
 # Define a Project model
 class Project(Base):
-    __tablename__ = "projects"
+    __tablename__ = 'projects'
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
+    details = Column(String)
+    documents = Column(String)
     logo = Column(String)
-    details = Column(Text)
-    documents = Column(Text)
+    owner_id = Column(Integer, ForeignKey('users.id'))
 
 
 # Create all tables in the engine
