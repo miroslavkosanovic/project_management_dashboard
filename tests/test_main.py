@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
-from main.main import app
+from main.main import app, get_db, User
+from werkzeug.security import generate_password_hash
 
 client = TestClient(app)
 
@@ -32,6 +33,20 @@ def test_create_user():
 
 
 def test_get_all_projects():
+    # Create a new database session for the test
+    db = next(get_db())
+
+    # Create the User object
+    test_user = User(
+        name="Test User",
+        email="test@test.com",
+        password=generate_password_hash("test"),
+        role="user",
+    )
+
+    # Add the test user to the database
+    db.add(test_user)
+    db.commit()
     # Authenticate
     login_response = client.post(
         "/login", json={"email": "test@test.com", "password": "test"}
