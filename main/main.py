@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy import create_engine, Column, Integer, String, Text  # noqa: F401
 from sqlalchemy.orm import sessionmaker, declarative_base  # noqa: F401
@@ -10,8 +10,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 from jwt import PyJWTError, JWTError
 from datetime import datetime, timedelta
-from fastapi import HTTPException, status
-
 # Load environment variables
 load_dotenv()
 
