@@ -8,7 +8,7 @@ from typing import Optional, List
 import os  # noqa: F401
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
-from jwt import PyJWTError, JWTError
+from jwt import PyJWTError, InvalidTokenError
 from datetime import datetime, timedelta
 
 # Load environment variables
@@ -158,7 +158,7 @@ def decode_access_token(token: str):
         if email is None:
             raise credentials_exception
         return payload
-    except (PyJWTError, JWTError):
+    except (PyJWTError, InvalidTokenError):
         raise credentials_exception
 
 
