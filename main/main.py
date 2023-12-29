@@ -112,7 +112,7 @@ app = FastAPI()
 
 @app.post("/auth", response_model=UserCreate)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
-    hashed_password = generate_password_hash(user.password, method="pbkdf2:sha256")
+    hashed_password = generate_password_hash(user.password)
 
     db_user = User(
         name=user.name, email=user.email, password=hashed_password, role=user.role
