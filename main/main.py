@@ -10,6 +10,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 from jwt import PyJWTError, JWTError
 from datetime import datetime, timedelta
+
 # Load environment variables
 load_dotenv()
 
