@@ -63,17 +63,6 @@ class UserCreate(BaseModel):
     role: Optional[str] = "user"
 
 
-# Association table
-project_users = Table(
-    "project_users",
-    Base.metadata,
-    Column("id", Integer, primary_key=True, index=True),
-    Column("user_id", Integer, ForeignKey("users.id")),
-    Column("project_id", Integer, ForeignKey("projects.id")),
-    Column("is_owner", Boolean, default=False),
-)
-
-
 class ProjectUser(Base):
     __tablename__ = "project_users"
     __table_args__ = {"extend_existing": True}
