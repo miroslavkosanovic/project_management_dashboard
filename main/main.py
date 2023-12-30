@@ -171,12 +171,12 @@ def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = decode_access_token(token)
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
         if email is None:
             raise credentials_exception
         token_data = TokenData(email=email)
-    except PyJWTError:
+    except Exception:
         raise credentials_exception
     user = db.query(User).filter(User.email == token_data.email).first()
     if user is None:
@@ -255,14 +255,23 @@ def update_project_info(project_id: int, project: ProjectModel):
         raise HTTPException(status_code=404, detail="Project not found")
 
 
-@app.delete("/project/{project_id}")
-def delete_project(project_id: int):
-    session = Session()
-    project = session.get(Project, project_id)
-    if project is not None:
-        session.delete(project)
-        session.commit()
-        session.close()
-        return {"message": "Project deleted"}
-    else:
+def get_current_active_user(current_user: User = Depends(get_current_user)):
+    if current_user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    return current_user
+
+
+@app.delete("/projects/{project_id}")
+def delete_project(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
         raise HTTPException(status_code=404, detail="Project not found")
+    if project.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    db.delete(project)
+    db.commit()
+    return {"detail": "Project deleted"}
