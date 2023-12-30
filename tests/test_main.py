@@ -1,12 +1,14 @@
 from fastapi.testclient import TestClient
 from main.main import app, get_db, User, Project, SessionLocal
 from werkzeug.security import generate_password_hash
+from main.main import ProjectUser
 
 client = TestClient(app)
 
 
 def setup_test_data(db):
     # Delete existing data
+    db.query(ProjectUser).delete()
     db.query(User).delete()
     db.query(Project).delete()
 

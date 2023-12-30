@@ -70,7 +70,7 @@ class UserCreate(BaseModel):
 
 
 # Association table
-project_users = Table(
+ProjectUser = Table(
     "project_users",
     Base.metadata,
     Column("user_id", Integer, ForeignKey("users.id")),
@@ -87,7 +87,7 @@ class User(Base):
     password = Column(String)
     role = Column(String)
     active = Column(Boolean, default=True)
-    projects = relationship("Project", secondary=project_users, back_populates="users")
+    projects = relationship("Project", secondary=ProjectUser, back_populates="users")
 
 
 # Define a Project model
@@ -99,7 +99,7 @@ class Project(Base):
     logo = Column(String)
     details = Column(Text)
     documents = Column(Text)
-    users = relationship("User", secondary=project_users, back_populates="projects")
+    users = relationship("User", secondary=ProjectUser, back_populates="projects")
 
 
 # Create all tables in the engine
