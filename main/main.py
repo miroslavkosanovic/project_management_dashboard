@@ -19,6 +19,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 from jwt import PyJWTError, InvalidTokenError
 from datetime import datetime, timedelta
+from fastapi import Query
 
 # Load environment variables
 load_dotenv()
@@ -298,3 +299,26 @@ def delete_project(
     db.delete(project)
     db.commit()
     return {"message": "Project deleted successfully"}
+
+@app.post("/project/{project_id}/invite")
+def invite_user(
+    project_id: int,
+    user_login: str = Query(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    if project.owner != current_user:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    user = db.query(User).filter(User.login == user_login).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    project.users.append(user)
+    db.commit()
+
+    return {"message": "User invited successfully"}
