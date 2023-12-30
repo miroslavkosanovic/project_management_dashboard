@@ -1,8 +1,33 @@
 from fastapi.testclient import TestClient
-from main.main import app, get_db, User
+from main.main import app, get_db, User, Project
 from werkzeug.security import generate_password_hash
 
 client = TestClient(app)
+
+
+def setup_test_data():
+    db = next(get_db())
+    # Delete existing data
+    db.query(User).delete()
+    db.query(Project).delete()
+
+    # Create test user
+    test_user = User(
+        name="Test User",
+        email="test@test.com",
+        password=generate_password_hash("test"),
+        role="user",
+    )
+    db.add(test_user)
+    db.commit()
+
+    # Create test project owned by test user
+    test_project = Project(
+        name="Test Project",
+        owner_id=test_user.id,
+    )
+    db.add(test_project)
+    db.commit()
 
 
 def test_create_project():
@@ -100,6 +125,28 @@ def test_update_project_info():
 
 
 def test_delete_project():
-    response = client.delete("/projects/1")
+    # Create a new database session for the test
+    db = next(get_db())
+
+    # Set up test data
+    setup_test_data(db)
+
+    # Authenticate
+    login_response = client.post(
+        "/login", data={"username": "test@test.com", "password": "test"}
+    )
+    assert login_response.status_code == 200
+    token = login_response.json()["access_token"]
+
+    # Get the id of the test project
+    test_project_id = (
+        db.query(Project).filter(Project.name == "Test Project").first().id
+    )
+
+    # Send the DELETE request with the authentication token
+    response = client.delete(
+        f"/projects/{test_project_id}", headers={"Authorization": f"Bearer {token}"}
+    )
+
     assert response.status_code == 200
     assert response.json() == {"detail": "Project deleted"}
