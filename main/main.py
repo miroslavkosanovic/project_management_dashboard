@@ -90,7 +90,7 @@ class User(Base):
     password = Column(String)
     role = Column(String)
     active = Column(Boolean, default=True)
-    projects = relationship("Project", secondary=project_users, back_populates="users")
+    project_users = relationship("ProjectUser", back_populates="user")
 
 
 class Project(Base):
@@ -101,7 +101,7 @@ class Project(Base):
     logo = Column(String)
     details = Column(Text)
     documents = Column(Text)
-    users = relationship("User", secondary=project_users, back_populates="projects")
+    project_users = relationship("ProjectUser", back_populates="project")
 
 
 # Create all tables in the engine
