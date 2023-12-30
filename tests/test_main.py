@@ -10,21 +10,36 @@ def setup_test_data(db):
     db.query(User).delete()
     db.query(Project).delete()
 
-    # Create test user
+    # Create test users
     test_user = User(
         name="Test User",
         email="test@test.com",
         password=generate_password_hash("test"),
         role="user",
     )
-    db.add(test_user)
+
+    test_user2 = User(
+        name="Test User User",
+        email="user@test.com",
+        password=generate_password_hash("test"),
+        role="user",
+    )
+
+    test_user3 = User(
+        name="Test User Owner",
+        email="owner@test.com",
+        password=generate_password_hash("test"),
+        role="user",
+    )
+
+    db.add_all([test_user, test_user2, test_user3])
     db.commit()
 
-    # Create test project and associate it with test user
+    # Create test project and associate it with test_user3
     test_project = Project(
         name="Test Project",
     )
-    test_project.users.append(test_user)
+    test_project.users.append(test_user3)
     db.add(test_project)
     db.commit()
 
@@ -149,3 +164,40 @@ def test_delete_project():
 
     assert response.status_code == 200
     assert response.json() == {"message": "Project deleted successfully"}
+
+
+def test_invite_user():
+    # Create a new database session for the test
+    db = SessionLocal()
+
+    # Set up test data
+    setup_test_data(db)
+
+    # Authenticate as the project owner
+    login_response = client.post(
+        "/login", data={"username": "owner@test.com", "password": "test"}
+    )
+    assert login_response.status_code == 200
+    token = login_response.json()["access_token"]
+
+    # Get the id of the test project and the login of the user to be invited
+    test_project_id = (
+        db.query(Project).filter(Project.name == "Test Project").first().id
+    )
+    user_to_invite_login = (
+        db.query(User).filter(User.email == "user@test.com").first().login
+    )
+
+    # Send the POST request with the authentication token
+    response = client.post(
+        f"/project/{test_project_id}/invite?user={user_to_invite_login}",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    # Check the response
+    assert response.status_code == 200
+    assert response.json() == {"message": "User invited successfully"}
+
+    # Check that the user was actually invited
+    updated_project = db.query(Project).filter(Project.id == test_project_id).first()
+    assert user_to_invite_login in [user.login for user in updated_project.users]
