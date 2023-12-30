@@ -192,7 +192,7 @@ def test_invite_user():
 
     # Send the POST request with the authentication token
     response = client.post(
-        f"/project/{test_project_id}/invite?user={user_to_invite_email}",
+        f"/project/{test_project_id}/invite?user_email={user_to_invite_email}",
         headers={"Authorization": f"Bearer {token}"},
     )
 
