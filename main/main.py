@@ -300,6 +300,7 @@ def delete_project(
     db.commit()
     return {"message": "Project deleted successfully"}
 
+
 @app.post("/project/{project_id}/invite")
 def invite_user(
     project_id: int,
