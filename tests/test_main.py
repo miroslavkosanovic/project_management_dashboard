@@ -33,7 +33,7 @@ def test_create_user():
 
 
 def test_get_all_projects():
-    # Create a new database session for the test1
+    # Create a new database session for the test
     db = next(get_db())
 
     # Delete the existing user
@@ -56,9 +56,6 @@ def test_get_all_projects():
     login_response = client.post(
         "/login", data={"username": "test@test.com", "password": "test"}
     )
-
-    # Print out the response content
-    print(login_response.content)
 
     assert login_response.status_code == 200
     token = login_response.json()["access_token"]
