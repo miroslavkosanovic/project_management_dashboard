@@ -100,6 +100,6 @@ def test_update_project_info():
 
 
 def test_delete_project():
-    response = client.delete("/project/1")
+    response = client.delete("/projects/1")
     assert response.status_code == 200
-    assert response.json() == {"message": "Project deleted"}
+    assert response.json() == {"detail": "Project deleted"}
