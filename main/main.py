@@ -69,6 +69,7 @@ ProjectUser = Table(
     Base.metadata,
     Column("user_id", Integer, ForeignKey("users.id")),
     Column("project_id", Integer, ForeignKey("projects.id")),
+    Column("is_owner", Boolean, default=False),
 )
 
 
@@ -302,18 +303,42 @@ def invite_user(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
-    project = db.query(Project).filter(Project.id == project_id).first()
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
+    # Check if the current user is the owner of the project
+    project_user = (
+        db.query(ProjectUser)
+        .filter(
+            ProjectUser.project_id == project_id,
+            ProjectUser.user_id == current_user.id,
+            ProjectUser.is_owner == True,
+        )
+        .first()
+    )
 
-    if project.owner != current_user:
+    if not project_user:
         raise HTTPException(status_code=403, detail="Not authorized")
 
+    # Check if the user to be invited exists
     user = db.query(User).filter(User.email == user_email).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    project.users.append(user)
+    # Check if the user is already a member of the project
+    is_already_member = (
+        db.query(ProjectUser)
+        .filter(ProjectUser.project_id == project_id, ProjectUser.user_id == user.id)
+        .first()
+    )
+
+    if is_already_member:
+        raise HTTPException(
+            status_code=400, detail="User is already a member of the project"
+        )
+
+    # Add the user to the project
+    new_project_user = ProjectUser(
+        user_id=user.id, project_id=project_id, is_owner=False
+    )
+    db.add(new_project_user)
     db.commit()
 
     return {"message": "User invited successfully"}
