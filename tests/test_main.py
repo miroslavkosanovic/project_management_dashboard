@@ -206,4 +206,6 @@ def test_invite_user():
 
     # Check that the user was actually invited
     updated_project = db.query(Project).filter(Project.id == test_project_id).first()
-    assert user_to_invite_email in [pu.user.email for pu in updated_project.project_users]
+    assert user_to_invite_email in [
+        pu.user.email for pu in updated_project.project_users
+    ]
