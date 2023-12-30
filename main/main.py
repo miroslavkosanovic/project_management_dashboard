@@ -2,7 +2,6 @@ from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy import (
     create_engine,
-    Table,
     Boolean,
     ForeignKey,
     Column,
@@ -64,13 +63,16 @@ class UserCreate(BaseModel):
 
 
 # Association table
-ProjectUser = Table(
-    "project_users",
-    Base.metadata,
-    Column("user_id", Integer, ForeignKey("users.id")),
-    Column("project_id", Integer, ForeignKey("projects.id")),
-    Column("is_owner", Boolean, default=False),
-)
+class ProjectUser(Base):
+    __tablename__ = "project_users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    project_id = Column(Integer, ForeignKey("projects.id"))
+    is_owner = Column(Boolean, default=False)
+
+    user = relationship("User", back_populates="project_users")
+    project = relationship("Project", back_populates="project_users")
 
 
 class User(Base):
