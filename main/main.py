@@ -53,12 +53,6 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
 # Create a base class for declarative models
 Base = declarative_base()
 
-
-class UserLogin(BaseModel):
-    email: str
-    password: str
-
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
@@ -304,7 +298,7 @@ def delete_project(
 @app.post("/project/{project_id}/invite")
 def invite_user(
     project_id: int,
-    user_login: str = Query(...),
+    user_email: str = Query(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
@@ -315,7 +309,7 @@ def invite_user(
     if project.owner != current_user:
         raise HTTPException(status_code=403, detail="Not authorized")
 
-    user = db.query(User).filter(User.login == user_login).first()
+    user = db.query(User).filter(User.email == user_email).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
