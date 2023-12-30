@@ -309,12 +309,12 @@ def invite_user(
         .filter(
             ProjectUser.project_id == project_id,
             ProjectUser.user_id == current_user.id,
-            ProjectUser.is_owner == True,
+            ProjectUser.is_owner,
         )
         .first()
     )
 
-    if not project_user:
+    if project_user is None:
         raise HTTPException(status_code=403, detail="Not authorized")
 
     # Check if the user to be invited exists
@@ -329,7 +329,7 @@ def invite_user(
         .first()
     )
 
-    if is_already_member:
+    if is_already_member is not None:
         raise HTTPException(
             status_code=400, detail="User is already a member of the project"
         )
