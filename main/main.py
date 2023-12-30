@@ -1,7 +1,15 @@
 from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from sqlalchemy import create_engine, Column, Integer, String, Text  # noqa: F401
-from sqlalchemy.orm import sessionmaker, declarative_base  # noqa: F401
+from sqlalchemy import (
+    create_engine,
+    Table,
+    ForeignKey,
+    Column,
+    Integer,
+    String,
+    Text,
+)  # noqa: F401
+from sqlalchemy.orm import sessionmaker, relationship, declarative_base  # noqa: F401
 from dotenv import load_dotenv  # noqa: F401
 from pydantic import BaseModel, HttpUrl
 from typing import Optional, List
@@ -59,25 +67,36 @@ class UserCreate(BaseModel):
     role: Optional[str] = "user"
 
 
+# Association table
+project_users = Table(
+    "project_users",
+    Base.metadata,
+    Column("user_id", Integer, ForeignKey("users.id")),
+    Column("project_id", Integer, ForeignKey("projects.id")),
+)
+
+
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
     email = Column(String, unique=True)
     password = Column(String)
     role = Column(String)
+    projects = relationship("Project", secondary=project_users, back_populates="users")
 
 
 # Define a Project model
 class Project(Base):
     __tablename__ = "projects"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
     logo = Column(String)
     details = Column(Text)
     documents = Column(Text)
+    users = relationship("User", secondary=project_users, back_populates="projects")
 
 
 # Create all tables in the engine

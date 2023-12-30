@@ -20,11 +20,11 @@ def setup_test_data(db):
     db.add(test_user)
     db.commit()
 
-    # Create test project owned by test user
+    # Create test project and associate it with test user
     test_project = Project(
         name="Test Project",
-        owner_id=test_user.id,
     )
+    test_project.users.append(test_user)
     db.add(test_project)
     db.commit()
 
