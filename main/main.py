@@ -293,8 +293,8 @@ def delete_project(
     project = db.query(Project).filter(Project.id == project_id).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    if project.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+    if project.owner != current_user:
+        raise HTTPException(status_code=403, detail="Not authorized")
     db.delete(project)
     db.commit()
-    return {"detail": "Project deleted"}
+    return {"message": "Project deleted successfully"}
