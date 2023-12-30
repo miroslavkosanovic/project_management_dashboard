@@ -148,4 +148,4 @@ def test_delete_project():
     )
 
     assert response.status_code == 200
-    assert response.json() == {"detail": "Project deleted"}
+    assert response.json() == {"message": "Project deleted successfully"}
