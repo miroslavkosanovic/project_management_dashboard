@@ -69,6 +69,9 @@ class ProjectUser(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     project_id = Column(Integer, ForeignKey("projects.id"))
+    is_owner = Column(
+        Boolean, default=False
+    )  # This line is for the ownership information
     user = relationship("User", back_populates="project_users")
     project = relationship("Project", back_populates="project_users")
 
