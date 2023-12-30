@@ -41,8 +41,12 @@ def setup_test_data(db):
     test_project = Project(
         name="Test Project",
     )
-    test_project.users.append(test_user3)
-    db.add(test_project)
+
+    # Create a ProjectUser object
+    project_user = ProjectUser(user=test_user3, project=test_project, is_owner=True)
+
+    # Add the ProjectUser object to the session
+    db.add(project_user)
     db.commit()
 
 
