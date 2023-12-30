@@ -62,6 +62,7 @@ class UserCreate(BaseModel):
     password: str
     role: Optional[str] = "user"
 
+
 # Association table
 project_users = Table(
     "project_users",
@@ -69,8 +70,9 @@ project_users = Table(
     Column("id", Integer, primary_key=True, index=True),
     Column("user_id", Integer, ForeignKey("users.id")),
     Column("project_id", Integer, ForeignKey("projects.id")),
-    Column("is_owner", Boolean, default=False)
+    Column("is_owner", Boolean, default=False),
 )
+
 
 class ProjectUser(Base):
     __tablename__ = "project_users"
