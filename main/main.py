@@ -3,6 +3,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy import (
     create_engine,
     Table,
+    Boolean,
     ForeignKey,
     Column,
     Integer,
@@ -84,6 +85,7 @@ class User(Base):
     email = Column(String, unique=True)
     password = Column(String)
     role = Column(String)
+    active = Column(Boolean, default=True)
     projects = relationship("Project", secondary=project_users, back_populates="users")
 
 
@@ -200,6 +202,8 @@ def get_current_user(
     user = db.query(User).filter(User.email == token_data.email).first()
     if user is None:
         raise credentials_exception
+    if not user.active:
+        raise HTTPException(status_code=400, detail="Inactive user")
     return user
 
 
@@ -275,7 +279,7 @@ def update_project_info(project_id: int, project: ProjectModel):
 
 
 def get_current_active_user(current_user: User = Depends(get_current_user)):
-    if current_user.disabled:
+    if not current_user.active:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
