@@ -114,7 +114,7 @@ def test_get_all_projects():
             "id": 1,
             "name": "Test Project",
             "details": None,
-            "documents": "{}",
+            "documents": [],
             "logo": None,
         }
     ]
@@ -127,7 +127,7 @@ def test_get_project_info():
         "project_id": 1,
         "name": "Test Project",
         "details": None,
-        "documents": "{}",
+        "documents": [],
         "logo": None,
     }
 
@@ -139,7 +139,7 @@ def test_update_project_info():
         "project_id": 1,
         "name": "Updated Project",
         "details": None,
-        "documents": "{}",
+        "documents": [],
         "logo": None,
     }
 
