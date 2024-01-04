@@ -245,7 +245,9 @@ def create_project(project: ProjectModel):
 @app.get("/project/{project_id}/info")
 def get_project_info(project_id: int):
     session = Session()
-    project = session.query(Project).options(joinedload(Project.documents)).get(project_id)
+    project = (
+        session.query(Project).options(joinedload(Project.documents)).get(project_id)
+    )
     session.close()
     if project is not None:
         return {
@@ -253,7 +255,9 @@ def get_project_info(project_id: int):
             "name": project.name,
             "logo": project.logo,
             "details": project.details,
-            "documents": [doc.to_dict() for doc in project.documents],  # assuming Document has a to_dict method
+            "documents": [
+                doc.to_dict() for doc in project.documents
+            ],  # assuming Document has a to_dict method
         }
     else:
         raise HTTPException(status_code=404, detail="Project not found")
