@@ -292,18 +292,21 @@ def update_project_info(project_id: int, project_info: ProjectModel):
 
         session.commit()
         session.refresh(db_project)
+
+        # Access the documents attribute before closing the session
+        documents = [doc.to_dict() for doc in db_project.documents]
+
         session.close()
         return {
             "project_id": db_project.id,
             "name": db_project.name,
             "logo": db_project.logo,
             "details": db_project.details,
-            "documents": [
-                doc.to_dict() for doc in db_project.documents
-            ],  # assuming Document has a to_dict method
+            "documents": documents,
         }
     else:
         session.close()
+        raise HTTPException(status_code=404, detail="Project not found")
 
 
 def get_current_active_user(current_user: User = Depends(get_current_user)):
