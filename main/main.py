@@ -1,8 +1,10 @@
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, status, UploadFile, File
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy import (
     create_engine,
     Boolean,
+    Table,
+    MetaData,
     ForeignKey,
     Column,
     Integer,
@@ -19,6 +21,8 @@ import jwt
 from jwt import PyJWTError, InvalidTokenError
 from datetime import datetime, timedelta
 from fastapi import Query
+from sqlalchemy.orm import joinedload
+import boto3
 
 # Load environment variables
 load_dotenv()
@@ -97,6 +101,28 @@ class Project(Base):
     details = Column(Text)
     documents = Column(Text)
     project_users = relationship("ProjectUser", back_populates="project")
+    documents = relationship("Document", back_populates="project")
+
+
+# Define the documents table
+metadata = MetaData()
+documents = Table(
+    "documents",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column("project_id", Integer, ForeignKey("projects.id")),
+    Column("url", String),
+)
+
+
+# Add a Document model
+class Document(Base):
+    __tablename__ = "documents"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"))
+    url = Column(String)
+    project = relationship("Project", back_populates="documents")
 
 
 # Create all tables in the engine
@@ -216,25 +242,6 @@ def create_project(project: ProjectModel):
     return {"project_id": db_project.id, "project": project}
 
 
-@app.get("/projects", dependencies=[Depends(get_current_user)])
-def get_all_projects():
-    session = Session()
-    projects = session.query(Project).all()
-    session.close()
-    return projects
-
-
-@app.get("/project/{project_id}", dependencies=[Depends(get_current_user)])
-def get_project(project_id: int):
-    session = Session()
-    project = session.get(Project, project_id)
-    session.close()
-    if project is not None:
-        return project
-    else:
-        raise HTTPException(status_code=404, detail="Project not found")
-
-
 @app.get("/project/{project_id}/info")
 def get_project_info(project_id: int):
     session = Session()
@@ -347,3 +354,52 @@ def invite_user(
     db.commit()
 
     return {"message": "User invited successfully"}
+
+
+s3 = boto3.client("s3")
+
+
+async def upload_file_to_s3(file: UploadFile):
+    try:
+        s3.upload_fileobj(file.file, "your-bucket-name", file.filename)
+        return f"https://myapp-prod-documents.s3.amazonaws.com/{file.filename}"
+    except Exception as e:
+        print(e)
+        return False
+
+
+# Add an endpoint to upload a document
+@app.post("/projects/{project_id}/documents")
+async def upload_document(project_id: int, file: UploadFile = File(...)):
+    # Upload the file to a storage service and get the URL
+    url = await upload_file_to_s3(file)
+
+    # Save a new document in the database
+    db = SessionLocal()
+    document = Document(url=url, project_id=project_id)
+    db.add(document)
+    db.commit()
+
+    return {"url": url}
+
+
+# Modify the project endpoints to include the documents
+@app.get("/projects", dependencies=[Depends(get_current_user)])
+def get_all_projects():
+    session = Session()
+    projects = session.query(Project).options(joinedload(Project.documents)).all()
+    session.close()
+    return projects
+
+
+@app.get("/project/{project_id}", dependencies=[Depends(get_current_user)])
+def get_project(project_id: int):
+    session = Session()
+    project = (
+        session.query(Project).options(joinedload(Project.documents)).get(project_id)
+    )
+    session.close()
+    if project is not None:
+        return project
+    else:
+        raise HTTPException(status_code=404, detail="Project not found")
