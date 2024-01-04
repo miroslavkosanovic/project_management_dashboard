@@ -263,18 +263,31 @@ def get_project_info(project_id: int):
         raise HTTPException(status_code=404, detail="Project not found")
 
 
+def get_project_with_documents(project_id):
+    session = Session()
+    try:
+        project = (
+            session.query(Project)
+            .options(joinedload(Project.documents))
+            .get(project_id)
+        )
+        return project
+    finally:
+        session.close()
+
+
 @app.put("/project/{project_id}/info")
-def update_project_info(project_id: int, project: ProjectModel):
+def update_project_info(project_id: int, project_info: ProjectModel):
     session = Session()
     db_project = session.get(Project, project_id)
     if db_project is not None:
-        db_project.name = project.name
-        db_project.logo = project.logo
-        db_project.details = project.details
+        db_project.name = project_info.name
+        db_project.logo = project_info.logo
+        db_project.details = project_info.details
 
         # Clear the existing documents and add the new ones
         db_project.documents = []
-        for doc in project.documents:
+        for doc in project_info.documents:
             db_project.documents.append(doc)
 
         session.commit()
@@ -291,7 +304,6 @@ def update_project_info(project_id: int, project: ProjectModel):
         }
     else:
         session.close()
-        raise HTTPException(status_code=404, detail="Project not found")
 
 
 def get_current_active_user(current_user: User = Depends(get_current_user)):
