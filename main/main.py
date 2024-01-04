@@ -271,7 +271,12 @@ def update_project_info(project_id: int, project: ProjectModel):
         db_project.name = project.name
         db_project.logo = project.logo
         db_project.details = project.details
-        db_project.documents = project.documents
+
+        # Clear the existing documents and add the new ones
+        db_project.documents = []
+        for doc in project.documents:
+            db_project.documents.append(doc)
+
         session.commit()
         session.refresh(db_project)
         session.close()
@@ -280,7 +285,9 @@ def update_project_info(project_id: int, project: ProjectModel):
             "name": db_project.name,
             "logo": db_project.logo,
             "details": db_project.details,
-            "documents": db_project.documents,
+            "documents": [
+                doc.to_dict() for doc in db_project.documents
+            ],  # assuming Document has a to_dict method
         }
     else:
         session.close()
