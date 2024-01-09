@@ -239,7 +239,7 @@ def test_get_project_documents():
     db.commit()
     db.refresh(test_project)
 
-    test_document = Document(name="Test Document", project_id=test_project.id)
+    test_document = Document(url="Test Document URL", project_id=test_project.id)
     db.add(test_document)
     db.commit()
     db.refresh(test_document)
@@ -253,4 +253,4 @@ def test_get_project_documents():
     assert response.status_code == 200
 
     # Check that the returned documents match the test document
-    assert response.json() == {"documents": [test_document.to_dict()]}
+    assert response.json() == {"documents": [test_document.url]}
