@@ -1,7 +1,8 @@
-from fastapi import FastAPI, HTTPException, Depends, status, UploadFile, File
+from fastapi import FastAPI, HTTPException, Query, Depends, status, UploadFile, File
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy import (
     create_engine,
+    inspect,
     Boolean,
     Table,
     MetaData,
@@ -11,7 +12,12 @@ from sqlalchemy import (
     String,
     Text,
 )  # noqa: F401
-from sqlalchemy.orm import sessionmaker, relationship, declarative_base  # noqa: F401
+from sqlalchemy.orm import (
+    sessionmaker,
+    joinedload,
+    relationship,
+    declarative_base,
+)  # noqa: F401
 from dotenv import load_dotenv  # noqa: F401
 from pydantic import BaseModel, HttpUrl
 from typing import Optional, List
@@ -20,8 +26,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 from jwt import PyJWTError, InvalidTokenError
 from datetime import datetime, timedelta
-from fastapi import Query
-from sqlalchemy.orm import joinedload
 import boto3
 
 # Load environment variables
@@ -123,6 +127,7 @@ class Document(Base):
     project_id = Column(Integer, ForeignKey("projects.id"))
     url = Column(String)
     project = relationship("Project", back_populates="documents")
+
     def to_dict(self):
         return {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}
 
