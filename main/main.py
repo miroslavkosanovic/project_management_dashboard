@@ -474,6 +474,7 @@ async def update_document(document_id: int, file: UploadFile = File(...)):
 
     return {"url": url}
 
+
 @app.delete("/document/{document_id}")
 def delete_document(document_id: int):
     db = SessionLocal()
@@ -482,7 +483,7 @@ def delete_document(document_id: int):
         raise HTTPException(status_code=404, detail="Document not found")
 
     # Delete the file from S3
-    s3.delete_object(Bucket='myapp-prod-documents', Key=document.url)
+    s3.delete_object(Bucket="myapp-prod-documents", Key=document.url)
 
     # Delete the document from the database
     db.delete(document)

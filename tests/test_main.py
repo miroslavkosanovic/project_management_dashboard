@@ -1,9 +1,8 @@
 from fastapi.testclient import TestClient
-from fastapi import HTTPException, File, UploadFile
+from fastapi import UploadFile
 from main.main import (
     app,
     get_db,
-    upload_file_to_s3,
     User,
     Project,
     ProjectUser,
@@ -310,15 +309,21 @@ def test_update_document():
     test_file = UploadFile("test_file.txt", file=BytesIO(test_file_content))
 
     # Make a request to the endpoint
-    response = client.put(f"/document/{test_document.id}", files={"file": ("test_file.txt", test_file_content, "text/plain")})
+    response = client.put(
+        f"/document/{test_document.id}",
+        files={"file": ("test_file.txt", test_file_content, "text/plain")},
+    )
 
     # Check that the response is successful
     assert response.status_code == 200
 
     # Check that the returned URL is correct
-    assert response.json() == {"url": f"https://myapp-prod-documents.s3.amazonaws.com/{test_file.filename}"}
+    assert response.json() == {
+        "url": f"https://myapp-prod-documents.s3.amazonaws.com/{test_file.filename}"
+    }
 
     db.close()
+
 
 def test_delete_document():
     # Create a test project and document
@@ -328,7 +333,10 @@ def test_delete_document():
     db.commit()
     db.refresh(test_project)
 
-    test_document = Document(url="https://myapp-prod-documents.s3.amazonaws.com/test_file.txt", project_id=test_project.id)
+    test_document = Document(
+        url="https://myapp-prod-documents.s3.amazonaws.com/test_file.txt",
+        project_id=test_project.id,
+    )
     db.add(test_document)
     db.commit()
     db.refresh(test_document)
