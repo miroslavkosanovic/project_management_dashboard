@@ -307,8 +307,7 @@ def test_update_document():
 
     # Create a test file
     test_file_content = b"Test file content"
-    test_file = UploadFile(filename="test_file.txt", content=BytesIO(test_file_content))
-
+    test_file = UploadFile(filename="test_file.txt", file=BytesIO(test_file_content))
     # Make a request to the endpoint
     response = client.put(
         f"/document/{test_document.id}",
