@@ -1,5 +1,5 @@
-from fastapi.testclient import TestClient, UploadFile
-from fastapi import HTTPException, File
+from fastapi.testclient import TestClient
+from fastapi import HTTPException, File, UploadFile
 from main.main import (
     app,
     get_db,
