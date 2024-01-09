@@ -1,10 +1,36 @@
 from fastapi.testclient import TestClient
 from main.main import app, get_db, User, Project, SessionLocal
 from werkzeug.security import generate_password_hash
-from main.main import ProjectUser
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, Session
+from main.main import ProjectUser, Project,Document
+import os
+from typing import Generator
 
 client = TestClient(app)
 
+db_user = os.getenv("DB_USER")
+db_password = os.getenv("DB_PASSWORD")
+db_name = os.getenv("DB_NAME")
+db_host = os.getenv("DB_HOST")
+db_port = os.getenv("DB_PORT")
+
+# Create a database engine
+engine = create_engine(
+    f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+def get_db() -> Generator:
+    try:
+        db = SessionLocal()
+        yield db
+    finally:
+        db.close()
+
+app.dependency_overrides[get_db] = get_db
+
+client = TestClient(app)
 
 def setup_test_data(db):
     # Delete existing data
@@ -209,3 +235,27 @@ def test_invite_user():
     assert user_to_invite_email in [
         pu.user.email for pu in updated_project.project_users
     ]
+
+def test_get_project_documents():
+    # Create a test project and document
+    db = SessionLocal()
+    test_project = Project(name='Test Project', logo='Test Logo', details='Test Details')
+    db.add(test_project)
+    db.commit()
+    db.refresh(test_project)
+
+    test_document = Document(name='Test Document', project_id=test_project.id)
+    db.add(test_document)
+    db.commit()
+    db.refresh(test_document)
+
+    db.close()
+
+    # Make a request to the endpoint
+    response = client.get(f"/project/{test_project.id}/documents")
+
+    # Check that the response is successful
+    assert response.status_code == 200
+
+    # Check that the returned documents match the test document
+    assert response.json() == {"documents": [test_document.to_dict()]}
