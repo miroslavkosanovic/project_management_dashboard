@@ -335,6 +335,8 @@ def test_update_document():
     db.close()
 
 
+from sqlalchemy.orm.exc import ObjectDeletedError
+
 @patch("botocore.client.BaseClient._make_api_call", new=mocked_s3_operation)
 def test_delete_document():
     # Create a test project and document
@@ -362,7 +364,11 @@ def test_delete_document():
     db.commit()
 
     # Check that the document has been deleted
-    deleted_document = db.get(Document, test_document.id)
+    try:
+        deleted_document = db.get(Document, test_document.id)
+    except ObjectDeletedError:
+        deleted_document = None
+
     assert deleted_document is None
 
     db.close()
