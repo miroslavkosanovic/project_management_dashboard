@@ -13,6 +13,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import os
 from io import BytesIO
+from unittest.mock import patch
 
 client = TestClient(app)
 
@@ -306,7 +307,7 @@ def test_update_document():
 
     # Create a test file
     test_file_content = b"Test file content"
-    test_file = UploadFile("test_file.txt", file=BytesIO(test_file_content))
+    test_file = UploadFile(filename="test_file.txt", content=BytesIO(test_file_content))
 
     # Make a request to the endpoint
     response = client.put(
@@ -325,6 +326,11 @@ def test_update_document():
     db.close()
 
 
+
+def mocked_s3_operation(self, operation_name, kwarg):
+    return None
+
+@patch('botocore.client.BaseClient._make_api_call', new=mocked_s3_operation)
 def test_delete_document():
     # Create a test project and document
     db = SessionLocal()
