@@ -326,11 +326,11 @@ def test_update_document():
     db.close()
 
 
-
 def mocked_s3_operation(self, operation_name, kwarg):
     return None
 
-@patch('botocore.client.BaseClient._make_api_call', new=mocked_s3_operation)
+
+@patch("botocore.client.BaseClient._make_api_call", new=mocked_s3_operation)
 def test_delete_document():
     # Create a test project and document
     db = SessionLocal()
