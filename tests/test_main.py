@@ -257,9 +257,15 @@ def test_get_project_documents():
 
 
 def test_get_document():
-    # Create a test document
+    # Create a test project
     db = SessionLocal()
-    test_document = Document(url="Test Document URL", project_id=1)
+    test_project = Project(name="Test Project")
+    db.add(test_project)
+    db.commit()
+    db.refresh(test_project)
+
+    # Create a test document
+    test_document = Document(url="Test Document URL", project_id=test_project.id)
     db.add(test_document)
     db.commit()
     db.refresh(test_document)
