@@ -123,6 +123,8 @@ class Document(Base):
     project_id = Column(Integer, ForeignKey("projects.id"))
     url = Column(String)
     project = relationship("Project", back_populates="documents")
+    def to_dict(self):
+        return {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}
 
 
 # Create all tables in the engine
