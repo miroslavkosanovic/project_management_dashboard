@@ -13,7 +13,7 @@ from werkzeug.security import generate_password_hash
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import os
-
+from io import BytesIO
 
 client = TestClient(app)
 
@@ -292,18 +292,55 @@ def test_get_document():
     db.close()
 
 
-@app.put("/document/{document_id}")
-async def update_document(document_id: int, file: UploadFile = File(...)):
+def test_update_document():
+    # Create a test project and document
     db = SessionLocal()
-    document = db.query(Document).get(document_id)
-    if document is None:
-        raise HTTPException(status_code=404, detail="Document not found")
-
-    url = await upload_file_to_s3(file)
-    if not url:
-        raise HTTPException(status_code=500, detail="File upload failed")
-
-    document.url = url
+    test_project = Project(name="Test Project")
+    db.add(test_project)
     db.commit()
+    db.refresh(test_project)
 
-    return {"url": url}
+    test_document = Document(url="Test Document URL", project_id=test_project.id)
+    db.add(test_document)
+    db.commit()
+    db.refresh(test_document)
+
+    # Create a test file
+    test_file_content = b"Test file content"
+    test_file = UploadFile("test_file.txt", file=BytesIO(test_file_content))
+
+    # Make a request to the endpoint
+    response = client.put(f"/document/{test_document.id}", files={"file": ("test_file.txt", test_file_content, "text/plain")})
+
+    # Check that the response is successful
+    assert response.status_code == 200
+
+    # Check that the returned URL is correct
+    assert response.json() == {"url": f"https://myapp-prod-documents.s3.amazonaws.com/{test_file.filename}"}
+
+    db.close()
+
+def test_delete_document():
+    # Create a test project and document
+    db = SessionLocal()
+    test_project = Project(name="Test Project")
+    db.add(test_project)
+    db.commit()
+    db.refresh(test_project)
+
+    test_document = Document(url="https://myapp-prod-documents.s3.amazonaws.com/test_file.txt", project_id=test_project.id)
+    db.add(test_document)
+    db.commit()
+    db.refresh(test_document)
+
+    # Make a request to the endpoint
+    response = client.delete(f"/document/{test_document.id}")
+
+    # Check that the response is successful
+    assert response.status_code == 200
+
+    # Check that the document has been deleted
+    deleted_document = db.query(Document).get(test_document.id)
+    assert deleted_document is None
+
+    db.close()

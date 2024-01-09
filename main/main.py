@@ -391,7 +391,7 @@ s3 = boto3.client("s3")
 
 async def upload_file_to_s3(file: UploadFile):
     try:
-        s3.upload_fileobj(file.file, "your-bucket-name", file.filename)
+        s3.upload_fileobj(file.file, "myapp-prod-documents", file.filename)
         return f"https://myapp-prod-documents.s3.amazonaws.com/{file.filename}"
     except Exception as e:
         print(e)
@@ -473,3 +473,19 @@ async def update_document(document_id: int, file: UploadFile = File(...)):
     db.commit()
 
     return {"url": url}
+
+@app.delete("/document/{document_id}")
+def delete_document(document_id: int):
+    db = SessionLocal()
+    document = db.query(Document).get(document_id)
+    if document is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    # Delete the file from S3
+    s3.delete_object(Bucket='myapp-prod-documents', Key=document.url)
+
+    # Delete the document from the database
+    db.delete(document)
+    db.commit()
+
+    return {"message": "Document deleted successfully"}
