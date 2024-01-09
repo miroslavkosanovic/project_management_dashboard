@@ -254,3 +254,23 @@ def test_get_project_documents():
     assert response.json() == {"documents": [test_document.to_dict()]}
 
     db.close()
+
+
+def test_get_document():
+    # Create a test document
+    db = SessionLocal()
+    test_document = Document(url="Test Document URL", project_id=1)
+    db.add(test_document)
+    db.commit()
+    db.refresh(test_document)
+
+    # Make a request to the endpoint
+    response = client.get(f"/document/{test_document.id}")
+
+    # Check that the response is successful
+    assert response.status_code == 200
+
+    # Check that the returned document matches the test document
+    assert response.json() == test_document.to_dict()
+
+    db.close()

@@ -447,3 +447,12 @@ def get_project(project_id: int):
         response = HTTPException(status_code=404, detail="Project not found")
     db.close()
     return response
+
+
+@app.get("/document/{document_id}")
+def get_document(document_id: int):
+    db = SessionLocal()
+    document = db.query(Document).get(document_id)
+    if document is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return document.to_dict()
