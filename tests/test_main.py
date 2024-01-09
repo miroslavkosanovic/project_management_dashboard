@@ -22,7 +22,8 @@ db_password = os.getenv("DB_PASSWORD")
 db_name = os.getenv("DB_NAME")
 db_host = os.getenv("DB_HOST")
 db_port = os.getenv("DB_PORT")
-
+aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
 # Create a database engine
 engine = create_engine(
     f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
@@ -292,6 +293,11 @@ def test_get_document():
     db.close()
 
 
+def mocked_s3_operation(self, operation_name, kwarg):
+    return None
+
+
+@patch("botocore.client.BaseClient._make_api_call", new=mocked_s3_operation)
 def test_update_document():
     # Create a test project and document
     db = SessionLocal()
@@ -327,10 +333,6 @@ def test_update_document():
     }
 
     db.close()
-
-
-def mocked_s3_operation(self, operation_name, kwarg):
-    return None
 
 
 @patch("botocore.client.BaseClient._make_api_call", new=mocked_s3_operation)
