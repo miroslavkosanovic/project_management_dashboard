@@ -358,10 +358,11 @@ def test_delete_document():
     # Check that the response is successful
     assert response.status_code == 200
 
+    # Commit the deletion operation
+    db.commit()
+
     # Check that the document has been deleted
-    deleted_document = db.get(
-        Document, test_document.id
-    )  # Use Session.get() instead of Query.get()
+    deleted_document = db.get(Document, test_document.id)
     assert deleted_document is None
 
     db.close()

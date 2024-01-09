@@ -241,7 +241,7 @@ def get_current_user(
 @app.post("/projects")
 def create_project(project: ProjectModel):
     db = SessionLocal()
-    db_project = Project(**project.dict())
+    db_project = Project(**project.model_dump())
     db.add(db_project)
     db.commit()
     db.refresh(db_project)
