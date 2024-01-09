@@ -251,6 +251,6 @@ def test_get_project_documents():
     assert response.status_code == 200
 
     # Check that the returned documents match the test document
-    assert response.json() == {"documents": [test_document.url]}
+    assert response.json() == {"documents": [test_document.to_dict()]}
 
     db.close()
