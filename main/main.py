@@ -233,24 +233,21 @@ def get_current_user(
 
 @app.post("/projects")
 def create_project(project: ProjectModel):
-    db_project = Project(**project.model_dump())
-    session = Session()
-    session.add(db_project)
-    session.commit()
-    session.refresh(db_project)
-    session.close()
+    db = SessionLocal()
+    db_project = Project(**project.dict())
+    db.add(db_project)
+    db.commit()
+    db.refresh(db_project)
+    db.close()
     return {"project_id": db_project.id, "project": project}
 
 
 @app.get("/project/{project_id}/info")
 def get_project_info(project_id: int):
-    session = Session()
-    project = (
-        session.query(Project).options(joinedload(Project.documents)).get(project_id)
-    )
-    session.close()
+    db = SessionLocal()
+    project = db.query(Project).options(joinedload(Project.documents)).get(project_id)
     if project is not None:
-        return {
+        response = {
             "project_id": project.id,
             "name": project.name,
             "logo": project.logo,
@@ -260,26 +257,26 @@ def get_project_info(project_id: int):
             ],  # assuming Document has a to_dict method
         }
     else:
-        raise HTTPException(status_code=404, detail="Project not found")
+        response = HTTPException(status_code=404, detail="Project not found")
+    db.close()
+    return response
 
 
 def get_project_with_documents(project_id):
-    session = Session()
+    db = SessionLocal()
     try:
         project = (
-            session.query(Project)
-            .options(joinedload(Project.documents))
-            .get(project_id)
+            db.query(Project).options(joinedload(Project.documents)).get(project_id)
         )
         return project
     finally:
-        session.close()
+        db.close()
 
 
 @app.put("/project/{project_id}/info")
 def update_project_info(project_id: int, project_info: ProjectModel):
-    session = Session()
-    db_project = session.get(Project, project_id)
+    db = SessionLocal()
+    db_project = db.query(Project).get(project_id)
     if db_project is not None:
         db_project.name = project_info.name
         db_project.logo = project_info.logo
@@ -290,13 +287,13 @@ def update_project_info(project_id: int, project_info: ProjectModel):
         for doc in project_info.documents:
             db_project.documents.append(doc)
 
-        session.commit()
-        session.refresh(db_project)
+        db.commit()
+        db.refresh(db_project)
 
         # Access the documents attribute before closing the session
         documents = [doc.to_dict() for doc in db_project.documents]
 
-        session.close()
+        db.close()
         return {
             "project_id": db_project.id,
             "name": db_project.name,
@@ -305,7 +302,7 @@ def update_project_info(project_id: int, project_info: ProjectModel):
             "documents": documents,
         }
     else:
-        session.close()
+        db.close()
         raise HTTPException(status_code=404, detail="Project not found")
 
 
@@ -412,20 +409,34 @@ async def upload_document(project_id: int, file: UploadFile = File(...)):
 # Modify the project endpoints to include the documents
 @app.get("/projects", dependencies=[Depends(get_current_user)])
 def get_all_projects():
-    session = Session()
-    projects = session.query(Project).options(joinedload(Project.documents)).all()
-    session.close()
+    db = SessionLocal()
+    projects = db.query(Project).options(joinedload(Project.documents)).all()
+    db.close()
     return projects
+
+
+@app.get("/project/{project_id}/documents")
+def get_project_documents(project_id: int):
+    db = SessionLocal()
+    db_project = db.query(Project).get(project_id)
+    if db_project is None:
+        db.close()
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    # Get the documents of the project
+    documents = [doc.to_dict() for doc in db_project.documents]
+
+    db.close()
+    return {"documents": documents}
 
 
 @app.get("/project/{project_id}", dependencies=[Depends(get_current_user)])
 def get_project(project_id: int):
-    session = Session()
-    project = (
-        session.query(Project).options(joinedload(Project.documents)).get(project_id)
-    )
-    session.close()
+    db = SessionLocal()
+    project = db.query(Project).options(joinedload(Project.documents)).get(project_id)
     if project is not None:
-        return project
+        response = project
     else:
-        raise HTTPException(status_code=404, detail="Project not found")
+        response = HTTPException(status_code=404, detail="Project not found")
+    db.close()
+    return response
