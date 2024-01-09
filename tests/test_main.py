@@ -315,6 +315,10 @@ def test_update_document():
     )
 
     # Check that the response is successful
+    if response.status_code != 200:
+        print(
+            response.json()
+        )  # Print the response's content if the status code is not 200
     assert response.status_code == 200
 
     # Check that the returned URL is correct
@@ -353,7 +357,9 @@ def test_delete_document():
     assert response.status_code == 200
 
     # Check that the document has been deleted
-    deleted_document = db.query(Document).get(test_document.id)
+    deleted_document = db.get(
+        Document, test_document.id
+    )  # Use Session.get() instead of Query.get()
     assert deleted_document is None
 
     db.close()
