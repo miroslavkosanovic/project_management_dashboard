@@ -1,11 +1,9 @@
 from fastapi.testclient import TestClient
-from main.main import app, get_db, User, Project, SessionLocal
+from main.main import app, get_db, User, Project, ProjectUser, Document
 from werkzeug.security import generate_password_hash
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
-from main.main import ProjectUser, Project,Document
+from sqlalchemy.orm import sessionmaker
 import os
-from typing import Generator
 
 client = TestClient(app)
 
@@ -21,16 +19,10 @@ engine = create_engine(
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-def get_db() -> Generator:
-    try:
-        db = SessionLocal()
-        yield db
-    finally:
-        db.close()
-
 app.dependency_overrides[get_db] = get_db
 
 client = TestClient(app)
+
 
 def setup_test_data(db):
     # Delete existing data
@@ -236,15 +228,18 @@ def test_invite_user():
         pu.user.email for pu in updated_project.project_users
     ]
 
+
 def test_get_project_documents():
     # Create a test project and document
     db = SessionLocal()
-    test_project = Project(name='Test Project', logo='Test Logo', details='Test Details')
+    test_project = Project(
+        name="Test Project", logo="Test Logo", details="Test Details"
+    )
     db.add(test_project)
     db.commit()
     db.refresh(test_project)
 
-    test_document = Document(name='Test Document', project_id=test_project.id)
+    test_document = Document(name="Test Document", project_id=test_project.id)
     db.add(test_document)
     db.commit()
     db.refresh(test_document)
