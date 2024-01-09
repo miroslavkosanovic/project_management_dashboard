@@ -14,6 +14,7 @@ from sqlalchemy.orm import sessionmaker
 import os
 from io import BytesIO
 from unittest.mock import patch
+from sqlalchemy.orm.exc import ObjectDeletedError
 
 client = TestClient(app)
 
@@ -335,7 +336,7 @@ def test_update_document():
     db.close()
 
 
-from sqlalchemy.orm.exc import ObjectDeletedError
+
 
 
 @patch("botocore.client.BaseClient._make_api_call", new=mocked_s3_operation)
