@@ -456,3 +456,20 @@ def get_document(document_id: int):
     if document is None:
         raise HTTPException(status_code=404, detail="Document not found")
     return document.to_dict()
+
+
+@app.put("/document/{document_id}")
+async def update_document(document_id: int, file: UploadFile = File(...)):
+    db = SessionLocal()
+    document = db.query(Document).get(document_id)
+    if document is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    url = await upload_file_to_s3(file)
+    if not url:
+        raise HTTPException(status_code=500, detail="File upload failed")
+
+    document.url = url
+    db.commit()
+
+    return {"url": url}

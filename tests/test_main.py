@@ -1,9 +1,19 @@
-from fastapi.testclient import TestClient
-from main.main import app, get_db, User, Project, ProjectUser, Document
+from fastapi.testclient import TestClient, UploadFile
+from fastapi import HTTPException, File
+from main.main import (
+    app,
+    get_db,
+    upload_file_to_s3,
+    User,
+    Project,
+    ProjectUser,
+    Document,
+)
 from werkzeug.security import generate_password_hash
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import os
+
 
 client = TestClient(app)
 
@@ -280,3 +290,20 @@ def test_get_document():
     assert response.json() == test_document.to_dict()
 
     db.close()
+
+
+@app.put("/document/{document_id}")
+async def update_document(document_id: int, file: UploadFile = File(...)):
+    db = SessionLocal()
+    document = db.query(Document).get(document_id)
+    if document is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    url = await upload_file_to_s3(file)
+    if not url:
+        raise HTTPException(status_code=500, detail="File upload failed")
+
+    document.url = url
+    db.commit()
+
+    return {"url": url}
