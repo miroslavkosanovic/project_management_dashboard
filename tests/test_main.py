@@ -244,8 +244,6 @@ def test_get_project_documents():
     db.commit()
     db.refresh(test_document)
 
-    db.close()
-
     # Make a request to the endpoint
     response = client.get(f"/project/{test_project.id}/documents")
 
@@ -254,3 +252,5 @@ def test_get_project_documents():
 
     # Check that the returned documents match the test document
     assert response.json() == {"documents": [test_document.url]}
+
+    db.close()
