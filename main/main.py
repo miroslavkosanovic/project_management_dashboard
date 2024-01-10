@@ -1,5 +1,4 @@
 from fastapi import FastAPI, HTTPException, Query, Depends, status, UploadFile, File
-from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy import (
     create_engine,
@@ -28,6 +27,7 @@ import jwt
 from jwt import PyJWTError, InvalidTokenError
 from datetime import datetime, timedelta
 import boto3
+from fastapi.testclient import TestClient
 
 # Load environment variables
 load_dotenv()
@@ -493,14 +493,27 @@ def delete_document(document_id: int):
     return {"message": "Document deleted successfully"}
 
 
-@app.get("/project/{project_id}/logo")
-def get_project_logo(project_id: int):
+def test_get_project_logo():
+    # Arrange
     db = SessionLocal()
-    project = db.get(Project, project_id)
-    print(f"Project: {project}")
-    if project is None:
-        raise HTTPException(status_code=404, detail="Project not found")
-    print(f"Logo: {project.logo}")
-    if not project.logo:
-        raise HTTPException(status_code=404, detail="Project logo not found")
-    return RedirectResponse(url=project.logo)
+    project = Project(
+        name="Test Project",
+        logo="https://my-unique-logo-bucket.s3.amazonaws.com/logos/test-logo.png",
+    )
+    # Create an instance of the client
+    client = TestClient(app)
+
+    db.add(project)
+    db.commit()
+    db.refresh(project)
+
+    # Act
+    response = client.get(f"/project/{project.id}/logo")
+
+    # Assert
+    assert response.status_code == 302
+    assert response.headers["location"] == project.logo
+
+    # Clean up
+    db.delete(project)
+    db.commit()
