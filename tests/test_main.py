@@ -388,7 +388,7 @@ def test_get_project_logo():
     response = client.get(f"/project/{project.id}/logo")
 
     # Assert
-    assert response.status_code == 200
+    assert response.status_code == 302
     assert response.headers["location"] == project.logo
 
     # Clean up
