@@ -284,7 +284,7 @@ def get_project_with_documents(project_id):
 @app.put("/project/{project_id}/info")
 def update_project_info(project_id: int, project_info: ProjectModel):
     db = SessionLocal()
-    db_project = db.query(Project).get(project_id)
+    db_project = db.get(Project, project_id)
     if db_project is not None:
         db_project.name = project_info.name
         db_project.logo = project_info.logo
@@ -426,7 +426,7 @@ def get_all_projects():
 @app.get("/project/{project_id}/documents")
 def get_project_documents(project_id: int):
     db = SessionLocal()
-    db_project = db.query(Project).get(project_id)
+    db_project = db.get(Project, project_id)
     if db_project is None:
         db.close()
         raise HTTPException(status_code=404, detail="Project not found")
@@ -453,7 +453,7 @@ def get_project(project_id: int):
 @app.get("/document/{document_id}")
 def get_document(document_id: int):
     db = SessionLocal()
-    document = db.query(Document).get(document_id)
+    document = db.get(Document, document_id)
     if document is None:
         raise HTTPException(status_code=404, detail="Document not found")
     return document.to_dict()
@@ -462,7 +462,7 @@ def get_document(document_id: int):
 @app.put("/document/{document_id}")
 async def update_document(document_id: int, file: UploadFile = File(...)):
     db = SessionLocal()
-    document = db.query(Document).get(document_id)
+    document = db.get(Document, document_id)
     if document is None:
         raise HTTPException(status_code=404, detail="Document not found")
 
@@ -479,7 +479,7 @@ async def update_document(document_id: int, file: UploadFile = File(...)):
 @app.delete("/document/{document_id}")
 def delete_document(document_id: int):
     db = SessionLocal()
-    document = db.query(Document).get(document_id)
+    document = db.get(Document, document_id)
     if document is None:
         raise HTTPException(status_code=404, detail="Document not found")
 
