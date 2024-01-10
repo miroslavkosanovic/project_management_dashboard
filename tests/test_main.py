@@ -89,7 +89,7 @@ def test_create_project():
             "name": "Test Project",
             "details": None,
             "documents": [],
-            "logo": None,
+            "logo_url": None,
         },
     }
 
@@ -145,7 +145,7 @@ def test_get_all_projects():
             "name": "Test Project",
             "details": None,
             "documents": [],
-            "logo": None,
+            "logo_url": None,
         }
     ]
 
@@ -158,7 +158,7 @@ def test_get_project_info():
         "name": "Test Project",
         "details": None,
         "documents": [],
-        "logo": None,
+        "logo_url": None,
     }
 
 
@@ -170,7 +170,7 @@ def test_update_project_info():
         "name": "Updated Project",
         "details": None,
         "documents": [],
-        "logo": None,
+        "logo_url": None,
     }
 
 
@@ -245,7 +245,7 @@ def test_get_project_documents():
     # Create a test project and document
     db = SessionLocal()
     test_project = Project(
-        name="Test Project", logo="Test Logo", details="Test Details"
+        name="Test Project", logo_url="Test Logo", details="Test Details"
     )
     db.add(test_project)
     db.commit()
