@@ -371,3 +371,26 @@ def test_delete_document():
     assert deleted_document is None
 
     db.close()
+
+
+def test_get_project_logo():
+    # Arrange
+    db = SessionLocal()
+    project = Project(
+        name="Test Project",
+        logo_url="https://my-unique-logo-bucket.s3.amazonaws.com/logos/test-logo.png",
+    )
+    db.add(project)
+    db.commit()
+    db.refresh(project)
+
+    # Act
+    response = client.get(f"/project/{project.id}/logo")
+
+    # Assert
+    assert response.status_code == 200
+    assert response.headers["location"] == project.logo_url
+
+    # Clean up
+    db.delete(project)
+    db.commit()

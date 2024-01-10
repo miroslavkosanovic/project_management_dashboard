@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Query, Depends, status, UploadFile, File
+from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy import (
     create_engine,
@@ -101,7 +102,7 @@ class Project(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
-    logo = Column(String)
+    logo_url = Column(String)
     details = Column(Text)
     documents = Column(Text)
     project_users = relationship("ProjectUser", back_populates="project")
@@ -490,3 +491,14 @@ def delete_document(document_id: int):
     db.commit()
 
     return {"message": "Document deleted successfully"}
+
+
+@app.get("/project/{project_id}/logo")
+def get_project_logo(project_id: int):
+    db = SessionLocal()
+    project = db.query(Project).get(project_id)
+    if project is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+    if not project.logo_url:
+        raise HTTPException(status_code=404, detail="Project logo not found")
+    return RedirectResponse(url=project.logo_url)
