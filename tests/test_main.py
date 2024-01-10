@@ -33,8 +33,6 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 app.dependency_overrides[get_db] = get_db
 
-client = TestClient(app)
-
 
 def setup_test_data(db):
     # Delete existing data
