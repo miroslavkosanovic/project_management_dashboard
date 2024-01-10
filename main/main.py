@@ -102,7 +102,7 @@ class Project(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
-    logo_url = Column(String)
+    logo = Column(String)
     details = Column(Text)
     documents = Column(Text)
     project_users = relationship("ProjectUser", back_populates="project")
@@ -499,6 +499,6 @@ def get_project_logo(project_id: int):
     project = db.query(Project).get(project_id)
     if project is None:
         raise HTTPException(status_code=404, detail="Project not found")
-    if not project.logo_url:
+    if not project.logo:
         raise HTTPException(status_code=404, detail="Project logo not found")
-    return RedirectResponse(url=project.logo_url)
+    return RedirectResponse(url=project.logo)
