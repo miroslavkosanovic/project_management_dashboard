@@ -496,7 +496,7 @@ def delete_document(document_id: int):
 @app.get("/project/{project_id}/logo")
 def get_project_logo(project_id: int):
     db = SessionLocal()
-    project = db.get(Project,project_id)
+    project = db.get(Project, project_id)
     print(f"Project: {project}")
     if project is None:
         raise HTTPException(status_code=404, detail="Project not found")
