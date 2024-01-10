@@ -371,6 +371,15 @@ def test_delete_document():
     db.close()
 
 
+# Dependency
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
 def test_get_project_logo():
     # Arrange
     db = SessionLocal()
