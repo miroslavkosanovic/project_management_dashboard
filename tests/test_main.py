@@ -379,6 +379,7 @@ def test_get_project_logo():
         logo="https://my-unique-logo-bucket.s3.amazonaws.com/logos/test-logo.png",
     )
     db.add(project)
+    db.flush()
     db.commit()
     db.refresh(project)
 
