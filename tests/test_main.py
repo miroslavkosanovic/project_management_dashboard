@@ -383,7 +383,14 @@ def test_get_project_logo():
     db.commit()
     db.refresh(project)
 
+    # Override the get_db dependency
+    def override_get_db():
+        return db
+
+    app.dependency_overrides[get_db] = override_get_db
+
     # Act
+    client = TestClient(app)
     response = client.get(f"/project/{project.id}/logo")
 
     # Assert
