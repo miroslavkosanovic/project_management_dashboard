@@ -494,13 +494,10 @@ def delete_document(document_id: int):
 
 
 @app.get("/project/{project_id}/logo")
-def get_project_logo(project_id: int):
-    db = SessionLocal()
+def get_project_logo(project_id: int, db: Session = Depends(get_db)):
     project = db.get(Project, project_id)  # Use Session.get() instead of Query.get()
-    print(f"Project: {project}")
     if project is None:
         raise HTTPException(status_code=404, detail="Project not found")
-    print(f"Logo: {project.logo}")
     if not project.logo:
         raise HTTPException(status_code=404, detail="Project logo not found")
     return RedirectResponse(url=project.logo)
